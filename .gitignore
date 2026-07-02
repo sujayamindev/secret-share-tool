@@ -1,0 +1,12 @@
+.env
+data/
+*.db
+__pycache__/
+*.pyc
+.venv/
+venv/
+.superpowers/
+.claude/
+.playwright-mcp/
+docs/
+CLAUDE.md

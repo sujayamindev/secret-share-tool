@@ -1,0 +1,11 @@
+services:
+  secret-share:
+    build: .
+    container_name: secret-share-tool
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8001:8000"   # host 8000 is taken by another project's container; nginx reverse-proxies to 8001 from the host, not exposed publicly
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data        # SQLite file persists across container rebuilds
