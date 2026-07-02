@@ -46,9 +46,7 @@
         </div>
         <div class="field-group">
           <label class="field-label" for="allowed_emails">Restrict to emails <span class="field-label-hint">optional</span></label>
-          <input type="text" id="allowed_emails" name="allowed_emails" value="{{ allowed_emails or "" }}" placeholder="jane@company.com, sam@company.com" maxlength="2000"
-                 pattern="\s*[^@\s,]+@[^@\s,]+\.[^@\s,]+\s*(,\s*[^@\s,]+@[^@\s,]+\.[^@\s,]+\s*)*"
-                 title="Comma-separated email addresses, e.g. jane@company.com, sam@company.com"/>
+          <textarea id="allowed_emails" name="allowed_emails" rows="1" class="textarea-compact" placeholder="jane@company.com, sam@company.com" maxlength="2000">{{ allowed_emails or "" }}</textarea>
           <small class="muted">Comma-separated. Leave blank to allow any authenticated user.</small>
         </div>
         <button type="submit">Create link_</button>

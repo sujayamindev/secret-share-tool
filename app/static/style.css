@@ -241,6 +241,10 @@ textarea {
   line-height: 1.5;
 }
 
+.textarea-compact {
+  min-height: 2.75rem;
+}
+
 input[type="text"] {
   text-overflow: ellipsis;
 }
