@@ -145,6 +145,11 @@ app/
 ├── secrets_router.py          # create/created/view secret routes, input validation
 ├── templates/                  # Jinja2: create.html, created.html, view.html, gone.html
 └── static/                      # style.css, theme.js, favicon.svg
+
+tests/
+├── conftest.py                  # isolated test DB/env setup, client fixture, fake-session helpers
+├── test_allowlist.py             # allowlist parsing + enforcement unit tests
+└── test_view_secret.py            # view-once, expiry, allowlist, and concurrent-access tests
 ```
 
 Two tables: `secrets` (encrypted payload, expiry, viewed flag/by/at, allowlist) and
@@ -163,6 +168,7 @@ independent pages simple).
 - **Storage:** SQLite
 - **Encryption:** `cryptography`'s Fernet recipe
 - **Frontend:** Jinja2 templates, vanilla CSS/JS
+- **Testing:** pytest
 - **Deployment:** Docker Compose behind nginx + Let's Encrypt, on an OCI ARM VM
 
 ## Running locally
@@ -203,6 +209,19 @@ uvicorn app.main:app --reload
 
 Visit `http://localhost:8000`.
 
+### Running tests
+
+```bash
+pip install -r requirements-dev.txt
+pytest tests/
+```
+
+Covers allowlist parsing/enforcement and the one-time-view guarantee under
+genuine concurrent access — the two areas of `secrets_router.py` most
+load-bearing for the "view exactly once" security property. Runs against an
+isolated temp SQLite file and fakes an authenticated session directly,
+without exercising the real Asgardeo OIDC flow.
+
 ### Resetting the dev DB
 
 No migration framework — after a schema change, just delete and let it recreate:
@@ -233,9 +252,10 @@ SQLite's data file is bind-mounted (`./data:/app/data`) so it survives container
 GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request:
 
 - **lint** — `ruff check .`
+- **test** — `pytest tests/`
 - **docker-build** — verifies the image builds
 
-On a push to `main`, once both of those pass, a **deploy** job SSHes into the OCI VM,
+On a push to `main`, once all three pass, a **deploy** job SSHes into the OCI VM,
 `git pull`s the latest `main`, and runs `docker compose up --build -d`. Deploy credentials
 (`VM_HOST`, `VM_USER`, `VM_SSH_KEY`) are stored as secrets on a `production` GitHub
 Environment rather than as repo-level secrets, so they're only ever injected into the deploy
