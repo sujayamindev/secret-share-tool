@@ -29,7 +29,7 @@ MAX_PAYLOAD_LENGTH = 100_000
 MAX_ALLOWED_EMAILS_LENGTH = 2000
 # Deliberately loose (no full RFC 5322 grammar) — this only needs to catch
 # typos/garbage in the allowlist, not validate deliverability.
-EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s.]+(?:\.[^@\s.]+)+$")
 
 
 class _ValidationError(Exception):
