@@ -5,8 +5,8 @@ Unit tests for the allowlist logic: parsing/validating the create-form input
 """
 import pytest
 
-from app.secrets_router import _parse_allowed_emails, _ValidationError
 from app.models import Secret
+from app.secrets_router import _parse_allowed_emails, _ValidationError
 
 
 class TestParseAllowedEmails:
@@ -40,7 +40,8 @@ class TestParseAllowedEmails:
 
 class TestSecretIsAllowed:
     def _secret(self, allowed_emails=None):
-        return Secret(encrypted_payload="irrelevant", expires_at=None, allowed_emails=allowed_emails)
+        return Secret(ciphertext="irrelevant", iv="irrelevant", claim_token_hash="irrelevant",
+                      expires_at=None, allowed_emails=allowed_emails)
 
     def test_no_allowlist_permits_any_email(self):
         secret = self._secret(allowed_emails=None)
