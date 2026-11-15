@@ -17,7 +17,8 @@ Contents
 9. Change checklist
 10. Deployment cutover (manual steps, not done by this branch)
 11. Decisions I need from you
-12. Sources and things I could not confirm
+12. What changed during the build
+13. Sources and things I could not confirm
 
 ---
 
@@ -653,7 +654,23 @@ order:
 
 ---
 
-## 12. Sources and things I could not confirm
+## 12. What changed during the build
+
+- **Found by the browser test, not by the audit:** opening the full link while already on
+  the secret page only changes the URL fragment. Browsers do not reload for that, so the
+  script that strips the key did not run and the key stayed in the address bar. `secret.js`
+  now also handles `hashchange`.
+- **Client address:** the design said to pass `--proxy-headers` to uvicorn. Uvicorn's
+  trust-everything mode takes the *first* `X-Forwarded-For` entry, which the client
+  controls. The app instead reads the *last* entry itself when `TRUSTED_PROXY_HOPS=1`.
+- **Token endpoint authentication:** the client secret goes in the form body when the
+  provider lists `client_secret_post`, otherwise HTTP Basic, which is what the OIDC spec
+  says to assume.
+- **Not built:** nothing in the section 9 checklist was dropped. The Docker image has not
+  been built, because Docker is not installed on the development machine; CI's
+  `docker-build` job is the first check of the Dockerfile.
+
+## 13. Sources and things I could not confirm
 
 | Claim | Source | Status |
 |---|---|---|
@@ -661,11 +678,11 @@ order:
 | A redirect without a fragment inherits the original one | RFC 9110 section 10.2.2 | Confirmed, quoted in section 4 |
 | AES-GCM: 96-bit IV recommended, 128-bit default tag; WebCrypto needs a secure context; `http://localhost` counts as one | MDN: AesGcmParams, SubtleCrypto.encrypt, Secure Contexts | Confirmed |
 | `sessionStorage` is per tab and per origin | MDN: Window.sessionStorage | Confirmed |
-| `sessionStorage` survives a same-tab visit to another origin and back | MDN and WHATWG pages read did not state it | **Not confirmed in docs. Will test in a browser in Phase 2** |
+| `sessionStorage` survives a same-tab visit to another origin and back | Tested 2026-11-15 in a Chromium-based browser with `tests/mock_idp.py` (app on :8000, provider on :9000) | Confirmed in that browser. Not tested in Firefox or Safari |
 | Auth0 discovery URL, Regular Web App, Allowed Callback/Logout URLs, `/oidc/logout` parameters | auth0.com/docs (discovery, auth code flow, logout pages) | Confirmed |
 | Auth0 issuer has a trailing slash | Auth0 docs show both forms | **Not confirmed. Design does not depend on it** |
 | Auth0 lets an unverified database user log in with `email_verified: false` | Pages read do not cover it | **Not confirmed. The fix is correct either way** |
-| Auth0 accepts PKCE from a Regular Web App | Auth0's PKCE page only discusses public clients | **Not confirmed. Will test; fall back to no PKCE if rejected** |
+| Auth0 accepts PKCE from a Regular Web App | Auth0's PKCE page only discusses public clients | **Not confirmed against Auth0.** PKCE is implemented and verified against the mock provider, which enforces it |
 | Auth0 signs ID tokens with RS256 by default | Docs show RS256 as a setting, not as the default | **Not confirmed. Check the application's Advanced Settings** |
 | Production sends `http://` redirects (F19) | Reproduced in the test client only | **Not confirmed in production: the domain does not resolve** |
 | nginx forwards client IP and scheme | Read the vhost over SSH on 2026-11-15, after the owner gave access | Confirmed: both headers are set |
