@@ -1,4 +1,6 @@
-# Test-only dependencies, kept separate from requirements.txt so the
-# production image doesn't pull in pytest.
+# Test and lint tooling, kept separate from requirements.txt so the
+# production image doesn't pull it in. Pinned like everything else: an
+# unpinned linter means CI can start failing without any change to the repo.
 -r requirements.txt
 pytest==8.3.5
+ruff==0.17.5
