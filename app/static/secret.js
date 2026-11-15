@@ -19,8 +19,11 @@
   // in any request, (b) private to this site, and (c) private to this tab
   // and gone when the tab closes. It survives the trip to the sign-in page
   // and back because that happens in the same tab.
-  var fragment = window.location.hash.slice(1);
-  if (fragment) {
+  function captureFragment() {
+    var fragment = window.location.hash.slice(1);
+    if (!fragment) {
+      return false;
+    }
     if (SecretCrypto.parseLinkSecret(fragment)) {
       try {
         sessionStorage.setItem(storageKey, fragment);
@@ -32,7 +35,21 @@
     // replaceState rewrites the current history entry instead of adding one,
     // so the Back button does not lead to a URL with the key in it either.
     history.replaceState(null, '', window.location.pathname);
+    return true;
   }
+
+  captureFragment();
+
+  // Opening the full link while already on this page changes only the
+  // fragment. Browsers treat that as a jump within the same document: no
+  // request, no reload, and this script does not run again — so without this
+  // listener the key would sit in the address bar. Capture it the same way,
+  // then reload so the page shows the right view for the new state.
+  window.addEventListener('hashchange', function () {
+    if (captureFragment()) {
+      window.location.reload();
+    }
+  });
 
   function storedLinkSecret() {
     try {
