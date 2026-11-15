@@ -5,31 +5,48 @@ on:
     branches: ["**"]
   pull_request:
 
+# The workflow token can read the repository and nothing else. Without this
+# block it inherits the repository default, which may include write access.
+permissions:
+  contents: read
+
+# Third-party actions are pinned to a full commit SHA, not a tag. A tag can be
+# moved to different code after the fact; a commit hash cannot. This matters
+# most for the deploy job, which hands an SSH private key to the action.
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
-      - run: pip install ruff
+      # ruff is pinned in requirements-dev.txt and configured in pyproject.toml,
+      # so a new ruff release cannot fail this job with no change to the repo.
+      - run: pip install -r requirements-dev.txt
       - run: ruff check .
 
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
       - run: pip install -r requirements-dev.txt
       - run: pytest tests/ -v
+      # The browser crypto, run under Node's built-in test runner. No npm
+      # install: there are no JavaScript dependencies.
+      - run: node --test tests/js/crypto.test.js
 
   docker-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - run: docker build -t secret-share-tool:ci .
 
   deploy:
@@ -37,14 +54,24 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     environment: production
+    # One deploy at a time. A second push waits for the first to finish
+    # instead of two `docker compose up` runs overlapping on the VM.
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
     steps:
       - name: SSH into VM and redeploy
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
+            set -euo pipefail
             cd /mnt/data/secret-share-tool
-            git pull origin main
+            # Deploy the exact commit that passed the jobs above. A plain
+            # `git pull` would deploy whatever main points at by the time this
+            # runs, which can be a newer commit that has not been tested yet.
+            git fetch origin main
+            git merge --ff-only ${{ github.sha }}
             docker compose up --build -d
