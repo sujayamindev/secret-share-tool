@@ -1,3 +1,30 @@
+/* Fonts are served from this site, not from a font CDN. The page that shows
+   a decrypted secret should not load anything from another origin, and the
+   Content-Security-Policy (font-src 'self') enforces that. Both families are
+   variable fonts, so one file each covers every weight used below.
+   Licences: fonts/OFL-*.txt (SIL Open Font License 1.1). */
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('/static/fonts/space-grotesk-latin-wght.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/static/fonts/jetbrains-mono-latin-wght.woff2') format('woff2');
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* The scripts switch views with the `hidden` attribute. Without this, any
+   rule that sets `display` (e.g. `form { display: flex }`) would override it. */
+[hidden] {
+  display: none !important;
+}
+
 :root {
   --bg: #0a0c10;
   --panel-bg: #11151a;
@@ -406,4 +433,68 @@ a.text-link:hover {
 
 .site-footer a:hover {
   color: var(--accent-text);
+}
+
+/* A link that looks like the primary button (the sign-in action is a plain
+   navigation, so it is an <a>, not a <button>). */
+a.button-link {
+  display: inline-block;
+  margin-top: 1rem;
+  background: var(--accent-surface);
+  color: var(--accent-ink);
+  padding: 0.65rem 1.2rem;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+a.button-link:hover {
+  background: var(--accent-surface-hover);
+}
+
+a.button-link:focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: 1rem;
+}
+
+.actions a.text-link {
+  margin-top: 0;
+}
+
+/* A button that reads as a text link (sign out). */
+button.linkish {
+  background: transparent;
+  color: var(--muted);
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+}
+
+button.linkish:hover {
+  background: transparent;
+  color: var(--accent-text);
+  border-bottom-color: var(--accent-text);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
 }

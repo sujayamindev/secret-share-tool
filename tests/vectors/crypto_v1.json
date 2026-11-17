@@ -1,0 +1,26 @@
+[
+  {
+    "name": "ascii",
+    "link_secret": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+    "iv": "AAECAwQFBgcICQoL",
+    "plaintext": "correct horse battery staple",
+    "ciphertext": "GSZfnPIRNqvucAw0i2idXcZyEKKovNyl38mKHAgwRSXj27O73vqr1cn_fI8",
+    "claim_token": "CeHoQ7ZwChb_lxs8Tp6S_hfmVxrKrkbGIMtZp1LNEX8"
+  },
+  {
+    "name": "unicode and newlines",
+    "link_secret": "ZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1-f4CBgoM",
+    "iv": "MjM0NTY3ODk6Ozw9",
+    "plaintext": "pässwörd ✓ 秘密\nline two\t<b>not html</b>",
+    "ciphertext": "J1HwOSvdUT4rVv01EYlM4DR3T6Spxt9a6eIXUV763Xgf7bHLLqylARhmaJN69M4oFhR18uL0vATTttdqSDk",
+    "claim_token": "j4FKDmTMLdcKM3WWaR2tychGGzhjhuwTtArHvG0_xLs"
+  },
+  {
+    "name": "single byte",
+    "link_secret": "__________________________________________8",
+    "iv": "AAAAAAAAAAAAAAAA",
+    "plaintext": "x",
+    "ciphertext": "nCIxL51ZG6hOyVbK1JomP3I",
+    "claim_token": "f4vqfaOxL8nRFzDKzZpS-APvcyzW8oHjvKydSDWw84Q"
+  }
+]

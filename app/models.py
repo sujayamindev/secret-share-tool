@@ -1,14 +1,22 @@
 """
 Two tables, intentionally minimal:
 
-Secret  — the encrypted payload itself, one-time-view + TTL expiry
-Session — server-side session record, referenced by an opaque cookie value
-          (see auth.py for why we use this instead of a signed JWT cookie)
-"""
-import uuid
-from datetime import datetime, timezone
+Secret      — an encrypted payload the server cannot read, with a TTL
+UserSession — server-side session record, referenced by an opaque cookie value
+              (see auth.py for why we use this instead of a signed JWT cookie)
 
-from sqlalchemy import Column, String, DateTime, Boolean
+Neither table stores a usable bearer credential. The session cookie's value
+and the secret's claim token are both stored only as SHA-256 hashes, so a
+leaked copy of the database cannot be replayed as a login or as a claim.
+Plain SHA-256 (no salt, no slow hash) is correct here because both inputs are
+256-bit random values: there is nothing to brute-force or look up in a table.
+"""
+import hashlib
+import uuid
+from datetime import UTC, datetime
+
+from sqlalchemy import Column, DateTime, String, Text
+
 from app.database import Base
 
 
@@ -19,38 +27,47 @@ def _uuid() -> str:
 def _utcnow() -> datetime:
     # SQLite stores DateTime columns without timezone info, so we use naive UTC
     # throughout to avoid offset-naive vs offset-aware comparison errors.
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
+
+
+def sha256_hex(value: str | bytes) -> str:
+    if isinstance(value, str):
+        value = value.encode()
+    return hashlib.sha256(value).hexdigest()
 
 
 class Secret(Base):
     __tablename__ = "secrets"
 
     id = Column(String, primary_key=True, default=_uuid)
-    # Encrypted with Fernet (see crypto.py) — never stored in plaintext, even though
-    # this is a demo app, doing this properly is the point of the exercise.
-    encrypted_payload = Column(String, nullable=False)
-    created_at = Column(DateTime, default=_utcnow)
-    expires_at = Column(DateTime, nullable=False)
-    viewed = Column(Boolean, default=False)
-    # Who actually viewed it — useful for the "evidence" / demo narrative,
-    # shows the auth-gating is real, not decorative.
-    viewed_by_sub = Column(String, nullable=True)
-    viewed_at = Column(DateTime, nullable=True)
-    # Comma-separated allowlist of Asgardeo-verified email addresses.
+    # AES-256-GCM output from the sender's browser, base64url. The key never
+    # reaches the server, so this column is opaque to us by construction —
+    # there is no server-side encryption layer because there is nothing left
+    # for one to protect.
+    ciphertext = Column(Text, nullable=False)
+    # The GCM nonce. Not secret; stored so the recipient's browser can decrypt.
+    iv = Column(String, nullable=False)
+    # SHA-256 of the claim token, a value the browser derives from the link's
+    # key with HKDF. Whoever claims the secret must present the token, which
+    # proves they hold the full link and not just this row's id.
+    claim_token_hash = Column(String, nullable=False)
+    # Comma-separated allowlist of verified email addresses.
     # NULL means unrestricted (anyone authenticated can view).
     allowed_emails = Column(String, nullable=True)
+    created_at = Column(DateTime, default=_utcnow)
+    expires_at = Column(DateTime, nullable=False, index=True)
+
+    # No `viewed` flag: a claimed secret is deleted, not marked. A row that
+    # exists is by definition unclaimed.
 
     def is_expired(self) -> bool:
         return _utcnow() >= self.expires_at
 
-    def is_available(self) -> bool:
-        return not self.viewed and not self.is_expired()
-    
     def is_allowed(self, email: str | None) -> bool:
         if not self.allowed_emails:
             return True     # no restriction set
         if not email:
-            return False    # restriction set but viewer has no email claim
+            return False    # restriction set but viewer has no verified email
         allowed = {e.strip().lower() for e in self.allowed_emails.split(",")}
         return email.strip().lower() in allowed
 
@@ -58,13 +75,16 @@ class Secret(Base):
 class UserSession(Base):
     __tablename__ = "sessions"
 
-    # This is the opaque value stored in the cookie. Random, unguessable,
-    # carries no claims itself — it's just a lookup key into this table.
-    session_id = Column(String, primary_key=True, default=_uuid)
-    sub = Column(String, nullable=False)        # Asgardeo user's stable subject ID
-    email = Column(String, nullable=True)        # for display / evidence only
+    # SHA-256 of the random token held in the browser's cookie. The token
+    # itself is never stored.
+    token_hash = Column(String, primary_key=True)
+    sub = Column(String, nullable=False)        # the provider's stable subject ID
+    # Only ever set when the provider asserted `email_verified: true`. An
+    # unverified address is treated as no address at all, because the
+    # allowlist is only as trustworthy as this column.
+    email = Column(String, nullable=True)
     created_at = Column(DateTime, default=_utcnow)
-    expires_at = Column(DateTime, nullable=False)
+    expires_at = Column(DateTime, nullable=False, index=True)
 
     def is_expired(self) -> bool:
         return _utcnow() >= self.expires_at

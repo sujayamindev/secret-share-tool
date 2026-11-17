@@ -1,0 +1,24 @@
+# The image only needs requirements.txt and app/. Everything else stays out of
+# the build context, most importantly the local secrets and database.
+.env
+.env.*
+!.env.example
+data/
+*.db
+.git/
+.github/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+tests/
+docs/
+my-codeql-db/
+codeql-custom-queries-python/
+.claude/
+.superpowers/
+.playwright-mcp/
+.remember/
+.vscode/

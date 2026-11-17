@@ -7,5 +7,29 @@ services:
       - "127.0.0.1:8001:8000"   # host 8000 is taken by another project's container; nginx reverse-proxies to 8001 from the host, not exposed publicly
     env_file:
       - .env
+    environment:
+      # This deployment always sits behind exactly one reverse proxy (nginx on
+      # the host), so the client's address is the last X-Forwarded-For entry.
+      # Set here rather than in .env because it describes this compose file's
+      # topology, not a secret or a per-install choice.
+      TRUSTED_PROXY_HOPS: "1"
     volumes:
-      - ./data:/app/data        # SQLite file persists across container rebuilds
+      # SQLite file persists across container rebuilds. Two host-side
+      # requirements, both learned the hard way:
+      #   1. ./data must be owned by UID 10001 (the container's user).
+      #   2. On an SELinux host (Oracle Linux, RHEL, Fedora) a container may
+      #      only write to files labelled for containers. ":Z" tells Docker to
+      #      relabel this directory for this container. Without it the app
+      #      dies at startup with "unable to open database file", even though
+      #      the Unix permissions look right. Ignored on hosts without SELinux.
+      - ./data:/app/data:Z
+    # The app needs no Linux capabilities and never needs to gain privileges.
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

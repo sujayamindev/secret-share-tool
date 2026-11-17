@@ -5,8 +5,21 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+.pytest_cache/
+.ruff_cache/
+
+# Local tooling
 .superpowers/
 .claude/
 .playwright-mcp/
-docs/
+.remember/
+.vscode/
 CLAUDE.md
+
+# CodeQL working directories (local scans only)
+my-codeql-db/
+codeql-custom-queries-python/
+
+# docs/ holds local notes; only the v2 design document is published
+docs/*
+!docs/DESIGN-v2.md
