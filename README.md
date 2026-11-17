@@ -12,6 +12,8 @@ Zero-knowledge, identity-gated, one-time secret sharing.
 
 It works with any standards-compliant OIDC provider and is tested with Auth0.
 
+**Live demo:** https://secrets.sujaya.dev (sign-in is through a development Auth0 tenant)
+
 "Zero-knowledge" here means *the service cannot read what it stores*. It is not a
 zero-knowledge proof, and it has a hard limit that the [threat model](#threat-model) states
 plainly.
