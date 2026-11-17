@@ -14,7 +14,15 @@ services:
       # topology, not a secret or a per-install choice.
       TRUSTED_PROXY_HOPS: "1"
     volumes:
-      - ./data:/app/data        # SQLite file persists across container rebuilds; must be owned by UID 10001
+      # SQLite file persists across container rebuilds. Two host-side
+      # requirements, both learned the hard way:
+      #   1. ./data must be owned by UID 10001 (the container's user).
+      #   2. On an SELinux host (Oracle Linux, RHEL, Fedora) a container may
+      #      only write to files labelled for containers. ":Z" tells Docker to
+      #      relabel this directory for this container. Without it the app
+      #      dies at startup with "unable to open database file", even though
+      #      the Unix permissions look right. Ignored on hosts without SELinux.
+      - ./data:/app/data:Z
     # The app needs no Linux capabilities and never needs to gain privileges.
     cap_drop:
       - ALL

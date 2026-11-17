@@ -443,6 +443,10 @@ docker compose up --build -d
 
 - The container runs as an unprivileged user (UID 10001), with all capabilities dropped.
   The bind-mounted `data/` directory must be owned by that UID.
+- The volume is mounted with `:Z`. On an SELinux host (Oracle Linux, RHEL, Fedora) a
+  container can only write to files labelled for containers, and `:Z` has Docker apply that
+  label. Without it the app fails at startup with `unable to open database file` even though
+  the Unix permissions are correct. Hosts without SELinux ignore the flag.
 - The container port is published on `127.0.0.1:8001` only. nginx is what the internet
   reaches.
 - `docker-compose.yml` sets `TRUSTED_PROXY_HOPS=1`, so the per-address rate limit uses the
