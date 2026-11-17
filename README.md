@@ -182,6 +182,9 @@ What is checked, in [`verify_id_token`](app/auth.py):
   this a token with no `exp` would be accepted and never expire.
 - **`nonce`** matches the one this browser's attempt started with.
 
+Separately, if the provider's redirect carries an `iss` parameter (RFC 9207; Auth0 sends
+one), it must equal `OIDC_ISSUER` or the callback is refused before any token exchange.
+
 The discovery document's own `issuer` must also equal `OIDC_ISSUER` exactly, or sign-in is
 disabled. Everything else (endpoints, key location) comes from that document, so a wrong
 discovery URL would otherwise silently change whose tokens are accepted.
@@ -399,8 +402,9 @@ Things to know about Auth0:
   `end_session_endpoint`. Tenants created before 14 November 2023 need **Settings → Advanced
   → RP-Initiated Logout End Session Endpoint Discovery** switched on. Without it, sign-out
   still ends this app's session but not Auth0's.
-- The app does not keep the ID token, so it cannot send `id_token_hint` on logout. Auth0 may
-  show a confirmation prompt.
+- The app does not keep the ID token, so it cannot send `id_token_hint` on logout. Auth0
+  therefore shows a short "are you sure?" page before returning to the app. This app's own
+  session is already revoked by then.
 
 For another provider, set `OIDC_ISSUER` to its issuer and, if it does not use the standard
 discovery path, set `OIDC_DISCOVERY_URL`.
@@ -421,7 +425,8 @@ the JavaScript is doing standard HKDF and AES-GCM rather than something that onl
 with itself.
 
 Not covered by automated tests: the browser behaviour itself (the fragment surviving the
-sign-in round trip). That was checked by hand with the mock provider.
+sign-in round trip). That was checked by hand, with the mock provider and against a real
+Auth0 tenant (login with PKCE, reveal, and sign-out).
 
 ### Resetting the database
 

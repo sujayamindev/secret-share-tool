@@ -666,9 +666,12 @@ order:
 - **Token endpoint authentication:** the client secret goes in the form body when the
   provider lists `client_secret_post`, otherwise HTTP Basic, which is what the OIDC spec
   says to assume.
-- **Not built:** nothing in the section 9 checklist was dropped. The Docker image has not
-  been built, because Docker is not installed on the development machine; CI's
-  `docker-build` job is the first check of the Dockerfile.
+- **Found on the deployment VM:** SELinux blocks a non-root container from writing to a
+  bind mount unless it is relabelled. The data volume is mounted with `:Z`.
+- **Found against real Auth0:** the callback carries an `iss` parameter (RFC 9207). The app
+  now refuses a callback whose `iss` is not the configured issuer.
+- **Not built:** nothing in the section 9 checklist was dropped. The Docker image was first built by CI
+  and on the deployment VM, since Docker is not installed on the development machine.
 
 ## 13. Sources and things I could not confirm
 
@@ -682,8 +685,9 @@ order:
 | Auth0 discovery URL, Regular Web App, Allowed Callback/Logout URLs, `/oidc/logout` parameters | auth0.com/docs (discovery, auth code flow, logout pages) | Confirmed |
 | Auth0 issuer has a trailing slash | Auth0 docs show both forms | **Not confirmed. Design does not depend on it** |
 | Auth0 lets an unverified database user log in with `email_verified: false` | Pages read do not cover it | **Not confirmed. The fix is correct either way** |
-| Auth0 accepts PKCE from a Regular Web App | Auth0's PKCE page only discusses public clients | **Not confirmed against Auth0.** PKCE is implemented and verified against the mock provider, which enforces it |
-| Auth0 signs ID tokens with RS256 by default | Docs show RS256 as a setting, not as the default | **Not confirmed. Check the application's Advanced Settings** |
+| Auth0 accepts PKCE from a Regular Web App | Tenant discovery lists `S256`; a full login with PKCE completed against a real tenant on 2026-11-17 | Confirmed |
+| Auth0 signs ID tokens with RS256 by default | A new application's token verified with the app's asymmetric-only allow-list on 2026-11-17 | Confirmed for the tenant tested |
+| Auth0 logout without `id_token_hint` | Tested 2026-11-17 | Confirmed: Auth0 shows a confirmation page, then redirects to the registered logout URL |
 | Production sends `http://` redirects (F19) | Reproduced in the test client only | **Not confirmed in production: the domain does not resolve** |
 | nginx forwards client IP and scheme | Read the vhost over SSH on 2026-11-15, after the owner gave access | Confirmed: both headers are set |
 | ssh-action v1.2.0 commit | `git ls-remote` on 2026-11-15 | Confirmed |
