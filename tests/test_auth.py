@@ -248,6 +248,34 @@ def test_callback_missing_parameters_is_refused(query, client, idp, db):
     assert_refused(response, client, db, before)
 
 
+def test_callback_naming_a_different_issuer_is_refused(client, idp, db):
+    """RFC 9207: a provider may say in the redirect who issued the response.
+    If it names someone else, the response is not for this login."""
+    before = session_count(db)
+    params = start_login(client)
+    idp.id_token = idp.mint(nonce=params["nonce"])
+
+    response = client.get(
+        "/auth/callback",
+        params={"code": "good-code", "state": params["state"], "iss": "https://evil.test/"},
+        follow_redirects=False,
+    )
+
+    assert_refused(response, client, db, before)
+    assert idp.token_requests == []
+
+
+def test_callback_naming_the_configured_issuer_is_accepted(client, idp):
+    params = start_login(client)
+    idp.id_token = idp.mint(nonce=params["nonce"])
+    response = client.get(
+        "/auth/callback",
+        params={"code": "good-code", "state": params["state"], "iss": "https://idp.test/"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+
+
 def test_provider_error_is_not_echoed_into_the_page(client, idp, db):
     before = session_count(db)
     start_login(client)

@@ -318,12 +318,21 @@ def verify_id_token(id_token: str, expected_nonce: str) -> dict:
 
 @router.get("/callback", name="callback")
 def callback(request: Request, code: str | None = None, state: str | None = None,
-             error: str | None = None, db: DBSession = Depends(get_db)):
+             error: str | None = None, iss: str | None = None,
+             db: DBSession = Depends(get_db)):
     try:
         if error:
             # e.g. the user pressed Cancel on the provider's page. The value
             # is attacker-controllable, so it is logged and never echoed.
             raise AuthError(f"provider returned error {error!r}")
+
+        # Some providers (Auth0 among them) add an `iss` parameter to the
+        # redirect, naming who issued this response (RFC 9207). When it is
+        # there it must be our provider. This only bites if a response from a
+        # different authorization server is ever steered into this callback;
+        # the ID token's own `iss` is still checked later regardless.
+        if iss is not None and iss != settings.OIDC_ISSUER:
+            raise AuthError(f"callback iss {iss!r} is not the configured issuer")
 
         cookie_state = request.cookies.get(STATE_COOKIE)
         expected_nonce = request.cookies.get(NONCE_COOKIE)
