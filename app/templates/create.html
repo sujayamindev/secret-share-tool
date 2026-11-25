@@ -81,8 +81,8 @@
         <div class="step-head"><span class="step-label">1 · Your browser</span><svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
         <h3>Locked before it leaves</h3>
         <dl class="specimen">
-          <dt>you type</dt><dd class="mono">pin=4096</dd>
-          <dt>uploaded</dt><dd class="mono specimen-accent">7Hq2Vd9xKp&hellip;</dd>
+          <dt>you type</dt><dd class="mono">API_KEY=sk_9f2a7c</dd>
+          <dt>uploaded</dt><dd class="mono specimen-accent">7Hq2Vd9xKp0LzRw4&hellip;</dd>
         </dl>
         <p>Your browser encrypts it with AES-256-GCM under a fresh random key. Only the encrypted version is sent.</p>
       </li>
@@ -90,7 +90,7 @@
         <div class="step-head"><span class="step-label">2 · The link</span><svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></div>
         <h3>The key rides after the #</h3>
         <div class="specimen">
-          <p class="mono specimen-url">/secret/7f3a&hellip;<mark>#Xk9pQ2&hellip;</mark></p>
+          <p class="mono specimen-url">/secret/7f3a9c&hellip;<mark>#Xk9pQ2m&hellip;</mark></p>
           <p class="specimen-legend"><span class="legend-sent">reaches the server</span><span class="legend-kept">stays in the browser</span></p>
         </div>
         <p>Browsers never send the part after <span class="mono">#</span> to a server, so the key travels with the link, not through this site.</p>
@@ -99,8 +99,8 @@
         <div class="step-head"><span class="step-label">3 · Their sign-in</span><svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg></div>
         <h3>Only the right person gets in</h3>
         <dl class="specimen">
-          <dt>signed in</dt><dd class="mono">jo@acme.io</dd>
-          <dt>allowed</dt><dd class="has-badge"><span class="mono">jo@acme.io</span><span class="badge">match</span></dd>
+          <dt>signed in</dt><dd class="mono">jane@company.com</dd>
+          <dt>allowed</dt><dd class="has-badge"><span class="mono">jane@company.com</span><span class="badge">match</span></dd>
         </dl>
         <p>The recipient signs in first. If you listed emails, only a verified address on that list can open it.</p>
       </li>
@@ -108,7 +108,7 @@
         <div class="step-head"><span class="step-label">4 · Gone</span><svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
         <h3>Opened once, then deleted</h3>
         <dl class="specimen">
-          <dt>opened</dt><dd class="mono">pin=4096</dd>
+          <dt>opened</dt><dd class="dissolve"><span class="mono dissolve-text">API_KEY=sk_9f2a7c</span><span class="pixels" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></dd>
           <dt>next visit</dt><dd class="specimen-empty">nothing here</dd>
         </dl>
         <p>Revealing it deletes it in the same step. A second visit gets nothing, and unopened links expire on their own.</p>
