@@ -349,9 +349,10 @@ input[type="text"]::placeholder {
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+/* Focus uses the button green in both themes. */
 textarea:focus-visible,
 input[type="text"]:focus-visible {
-  border-color: var(--accent-text);
+  border-color: var(--accent-surface);
 }
 
 .field-group .muted {
