@@ -73,7 +73,10 @@ def _b64url_decode(value: str) -> bytes:
 
 
 def _parse_allowed_emails(raw: str) -> str | None:
-    """Validate + normalize the comma-separated allowlist. Returns None for
+    """Validate + normalize the allowlist. Entries are separated by commas or
+    any whitespace, so a list pasted one-per-line from a spreadsheet works; an
+    unquoted email address cannot contain whitespace, so splitting on it never
+    cuts a valid address in two. Returns None for
     "unrestricted" (blank input), otherwise a lowercased, deduped, comma-joined
     string. Rejects malformed entries outright rather than silently storing
     them — a typo'd email here would otherwise create a secret nobody can
@@ -83,7 +86,7 @@ def _parse_allowed_emails(raw: str) -> str | None:
     if not raw:
         return None
 
-    emails = [e.strip().lower() for e in raw.split(",") if e.strip()]
+    emails = [e.lower() for e in re.split(r"[,\s]+", raw) if e]
     invalid = [e for e in emails if not EMAIL_RE.match(e)]
     if invalid:
         raise _ValidationError(f"Not a valid email address: {invalid[0]}")

@@ -33,6 +33,12 @@ class TestParseAllowedEmails:
             _parse_allowed_emails(raw)
         assert "not-an-email" in str(exc_info.value)
 
+    def test_newline_and_space_separators(self):
+        # A list pasted one-per-line (from a spreadsheet or contacts export)
+        # must be read as separate addresses, not rejected or merged.
+        raw = "a@b.com\nc@d.com\r\ne@f.com  g@h.com,\n i@j.com"
+        assert _parse_allowed_emails(raw) == "a@b.com,c@d.com,e@f.com,g@h.com,i@j.com"
+
     def test_trailing_leading_and_empty_entries_are_dropped(self):
         raw = ",a@b.com,,c@d.com,"
         assert _parse_allowed_emails(raw) == "a@b.com,c@d.com"
