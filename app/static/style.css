@@ -576,6 +576,19 @@ html {
   }
 }
 
+/* A dotted accent line leading down from the form into the explainer. It is
+   the section's first flex item, so it stays attached to the heading however
+   tall the viewport is. Decorative: no content, hidden from assistive tech
+   by being a pseudo-element. */
+.how::before {
+  content: "";
+  align-self: center;
+  flex: none;
+  height: 7rem;
+  margin-bottom: 1.75rem;
+  border-left: 3px dotted var(--accent-surface);
+}
+
 .how h2 {
   margin: 0 0 0.4rem;
   font-size: clamp(1.6rem, 3vw, 2.25rem);
