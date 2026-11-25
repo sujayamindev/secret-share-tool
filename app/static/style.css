@@ -511,14 +511,22 @@ a.text-link:hover {
   min-height: calc(100vh - 4rem);
   min-height: calc(100svh - 4rem);
   padding-bottom: 4rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  /* Three rows, the outer two equal: the card sits on the viewport's
+     vertical centre, and the line under it hangs in the lower row instead
+     of pulling the card upward. */
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  justify-items: center;
 }
 
 .hero .card {
+  grid-row: 2;
   margin: 0;
+}
+
+.hero .tech-line {
+  grid-row: 3;
+  align-self: start;
 }
 
 .how {
