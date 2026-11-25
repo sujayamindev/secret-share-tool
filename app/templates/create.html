@@ -48,11 +48,12 @@
             <small class="muted small">Separate with commas or new lines. Recipients must sign in with a verified address. If left blank, anyone who has the link and signs in can open it.</small>
           </div>
           <button type="submit" id="create-btn">Create link</button>
+          <p class="muted small form-note">Unopened links expire after {{ secret_lifetime }}.</p>
         </form>
       </div>
       <div id="result-view" hidden>
         <h1>Your share link is ready</h1>
-        <p class="muted">It works once. The recipient signs in before the secret unlocks.</p>
+        <p class="muted">It works once and expires in {{ secret_lifetime }} if no one opens it. The recipient signs in before the secret unlocks.</p>
         <div class="copy-row">
           <code class="share-url" id="share-url"></code>
           <button class="copy-btn" id="copy-btn" type="button">Copy</button>

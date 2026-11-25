@@ -355,6 +355,13 @@ input[type="text"]:focus-visible {
   border-color: var(--accent-surface);
 }
 
+/* Sits under the submit button; the form's 1.5rem gap is too far for a
+   note that belongs to the button. */
+.form-note {
+  margin: -0.75rem 0 0;
+  text-align: center;
+}
+
 .field-group .muted {
   margin: 0;
   line-height: 1.45;

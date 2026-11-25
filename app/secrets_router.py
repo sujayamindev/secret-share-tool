@@ -25,7 +25,7 @@ from app.config import get_settings
 from app.database import get_db
 from app.models import Secret, _utcnow, sha256_hex
 from app.security import RateLimiter, client_ip, require_same_origin_json
-from app.web import gone_page, templates
+from app.web import gone_page, humanize_minutes, templates
 
 router = APIRouter(tags=["secrets"])
 settings = get_settings()
@@ -109,9 +109,12 @@ class ClaimSecretRequest(BaseModel):
 
 @router.get("/", name="create_form")
 def create_form(request: Request):
-    return templates.TemplateResponse(
-        request, "create.html", {"max_plaintext_bytes": MAX_PLAINTEXT_BYTES}
-    )
+    # The lifetime is a fixed setting, so the page states it up front and on
+    # the result view without a round trip.
+    return templates.TemplateResponse(request, "create.html", {
+        "max_plaintext_bytes": MAX_PLAINTEXT_BYTES,
+        "secret_lifetime": humanize_minutes(get_settings().SECRET_TTL_MINUTES),
+    })
 
 
 @router.post("/api/secrets", status_code=201, dependencies=[Depends(require_same_origin_json)])
