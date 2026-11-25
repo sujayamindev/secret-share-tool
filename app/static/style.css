@@ -123,8 +123,13 @@ body {
    readers get the Latin name from the link's aria-label. */
 .brand-mark {
   position: absolute;
-  top: 1.1rem;
-  left: 1.25rem;
+  /* One inset for both header corners, fluid: 20px on phones, growing to
+     32px on wide screens. Pages keep their chrome off the very edge by a
+     margin that scales with the viewport (24-32px is the usual desktop
+     range); top matches the side so each corner is square. */
+  --edge: clamp(1.25rem, 2vw, 2rem);
+  top: var(--edge);
+  left: var(--edge);
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
@@ -174,12 +179,13 @@ body {
 }
 
 .theme-toggle {
+  --edge: clamp(1.25rem, 2vw, 2rem);
   position: absolute;
   /* The button is a 2.25rem tap target around a 1.1rem icon. Offset it so
      the icon, not the button, sits on the same margin as the brand (1.25rem
      from the edge) and on the brand's vertical centre (1.75rem). */
-  top: 0.625rem;
-  right: 0.675rem;
+  top: calc(var(--edge) + 0.65rem - 1.125rem);
+  right: calc(var(--edge) - 0.575rem);
   width: 2.25rem;
   height: 2.25rem;
   display: flex;
