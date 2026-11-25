@@ -648,6 +648,12 @@ html {
   color: var(--muted);
 }
 
+/* The step icons carry the accent (the text-safe green, darker in light
+   mode); the "what the server stores" strip stays neutral. */
+.step-icon {
+  color: var(--accent-text);
+}
+
 .step h3 {
   margin: 0;
   font-size: 1.15rem;
