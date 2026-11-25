@@ -529,7 +529,7 @@ a.text-link:hover {
   gap: 1rem;
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1200px) {
   .steps {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -540,7 +540,7 @@ a.text-link:hover {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
-  padding: 1.5rem;
+  padding: 1.25rem 1rem;
   background: var(--panel-bg);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -588,7 +588,7 @@ a.text-link:hover {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 0.45rem 0.75rem;
-  padding: 0.75rem 0.85rem;
+  padding: 0.7rem 0.75rem;
   background: var(--input-bg);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -689,7 +689,7 @@ a.text-link:hover {
   align-items: center;
   gap: 0.75rem 1rem;
   margin-top: 1rem;
-  padding: 1rem 1.5rem;
+  padding: 1rem;
   border: 1px dashed var(--border);
   border-radius: 8px;
 }
