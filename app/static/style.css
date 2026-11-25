@@ -175,8 +175,11 @@ body {
 
 .theme-toggle {
   position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
+  /* The button is a 2.25rem tap target around a 1.1rem icon. Offset it so
+     the icon, not the button, sits on the same margin as the brand (1.25rem
+     from the edge) and on the brand's vertical centre (1.75rem). */
+  top: 0.625rem;
+  right: 0.675rem;
   width: 2.25rem;
   height: 2.25rem;
   display: flex;
