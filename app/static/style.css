@@ -538,6 +538,22 @@ a.text-link:hover {
   align-self: start;
 }
 
+/* On this page the footer belongs to the first screen, pinned to its bottom
+   edge on the same inset as the header. Absolute, so it takes no room in the
+   grid and the card stays on the viewport's centre. */
+.hero {
+  position: relative;
+  --edge: clamp(1.25rem, 2vw, 2rem);
+}
+
+.hero .site-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--edge) - 1rem);
+  margin: 0;
+}
+
 .how {
   width: 100%;
   max-width: 1280px;
