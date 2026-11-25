@@ -529,9 +529,21 @@ a.text-link:hover {
   gap: 1rem;
 }
 
+/* Four across, and each card's four parts (label, title, readout, text)
+   share rows with the other cards via subgrid, so a title that wraps to
+   two lines moves every readout down together instead of just its own. */
 @media (min-width: 1200px) {
   .steps {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  /* .steps > .step, not .step: the base .step rule comes later in the
+     file and would otherwise win with display: flex. */
+  .steps > .step {
+    display: grid;
+    grid-row: span 4;
+    grid-template-rows: subgrid;
+    row-gap: 0.9rem;
   }
 }
 
@@ -687,7 +699,6 @@ a.text-link:hover {
   color: var(--muted);
 }
 
-.legend-sent::before,
 .legend-kept::before {
   content: "";
   display: inline-block;
@@ -695,10 +706,6 @@ a.text-link:hover {
   height: 0.55rem;
   margin-right: 0.4rem;
   border-radius: 2px;
-  background: var(--border);
-}
-
-.legend-kept::before {
   background: var(--accent-surface);
 }
 
