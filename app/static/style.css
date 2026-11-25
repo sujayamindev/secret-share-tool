@@ -58,9 +58,9 @@ html[data-theme="light"] {
   --input-bg: #f6f7f9;
   --placeholder: #9aa1ab;
   --field-label: #4b515a;
-  --accent-surface: #22c55e;
-  --accent-surface-hover: #16a34a;
-  --accent-ink: #08150d;
+  --accent-surface: #3ddc84;
+  --accent-surface-hover: #2fcf77;
+  --accent-ink: #0b0d10;
   --accent-text: #15803d;
   --accent-text-hover: #166534;
   --success: #15803d;
@@ -91,6 +91,13 @@ body {
   transition: background 0.15s, color 0.15s;
 }
 
+/* Type scale, largest to smallest: heading 2rem, body copy (.muted) 1rem,
+   field labels 0.95rem, input text 0.9rem, field hints and fine print
+   (.small) 0.8rem. Each step is a different job, so no two compete. */
+
+/* Type rule: one sans for all interface text. Monospace marks literal data
+   only, the exact characters a person types, copies or reads back (the
+   secret, the email addresses, the share link), where l/1 and O/0 matter. */
 .mono {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
 }
@@ -99,8 +106,8 @@ body {
   position: fixed;
   top: 1.25rem;
   left: 1.25rem;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 500;
   color: var(--placeholder);
   text-decoration: none;
   transition: color 0.15s;
@@ -155,7 +162,7 @@ html[data-theme="light"] .theme-toggle .icon-moon {
   display: none;
 }
 
-.term-window {
+.card {
   background: var(--panel-bg);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -167,17 +174,8 @@ html[data-theme="light"] .theme-toggle .icon-moon {
   transition: background 0.15s, border-color 0.15s;
 }
 
-.term-body {
+.card-body {
   padding: 2rem 2rem 2.25rem;
-}
-
-.eyebrow {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  color: var(--accent-text);
-  margin: 0 0 0.85rem;
 }
 
 h1 {
@@ -190,19 +188,19 @@ h1 {
 
 .muted {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 1rem;
   line-height: 1.55;
 }
 
 .small {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
 }
 
 .warning {
   background: var(--warning-bg);
   border-left: 3px solid var(--warning-border);
   padding: 0.6rem 0.75rem;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.9rem;
   color: var(--text);
   margin: 1rem 0;
@@ -212,7 +210,7 @@ h1 {
   background: var(--error-bg);
   border-left: 3px solid var(--error-border);
   padding: 0.6rem 0.75rem;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.9rem;
   color: var(--error-text);
   margin: 1rem 0 0;
@@ -232,18 +230,16 @@ form {
 }
 
 .field-label {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--field-label);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
 }
 
 .field-label-hint {
-  color: var(--placeholder);
-  text-transform: none;
-  letter-spacing: normal;
+  margin-left: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--muted);
 }
 
 textarea,
@@ -254,7 +250,7 @@ input[type="text"] {
   margin: 0;
   background: var(--input-bg);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 6px;
   color: var(--text);
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 0.9rem;
@@ -268,8 +264,16 @@ textarea {
   line-height: 1.5;
 }
 
-.textarea-compact {
-  min-height: 2.75rem;
+/* Starts one line tall and grows with its content, so every address in the
+   allowlist stays visible for the sender to check. A wrong address here
+   makes a link nobody can open. field-sizing does this natively where
+   supported; create.js sets the height itself in other browsers. */
+.textarea-autogrow {
+  min-height: 0;
+  max-height: 12rem;
+  resize: none;
+  overflow-y: auto;
+  field-sizing: content;
 }
 
 input[type="text"] {
@@ -279,6 +283,7 @@ input[type="text"] {
 textarea::placeholder,
 input[type="text"]::placeholder {
   color: var(--placeholder);
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 textarea:focus-visible,
@@ -288,6 +293,7 @@ input[type="text"]:focus-visible {
 
 .field-group .muted {
   margin: 0;
+  line-height: 1.45;
 }
 
 button {
@@ -295,13 +301,11 @@ button {
   color: var(--accent-ink);
   border: none;
   padding: 0.65rem 1.2rem;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
   transition: background 0.15s;
   outline: none;
 }
@@ -340,7 +344,7 @@ a.text-link:hover {
   border: 1px solid var(--border);
   color: var(--text);
   padding: 0.75rem;
-  border-radius: 4px;
+  border-radius: 6px;
   word-break: break-all;
   margin: 1rem 0;
   white-space: pre-wrap;
@@ -366,13 +370,11 @@ a.text-link:hover {
   color: var(--accent-ink);
   border: none;
   padding: 0.65rem 0.9rem;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
   transition: background 0.15s;
   outline: none;
   white-space: nowrap;
@@ -401,8 +403,7 @@ a.text-link:hover {
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: var(--placeholder);
 }
 
@@ -443,12 +444,10 @@ a.button-link {
   background: var(--accent-surface);
   color: var(--accent-ink);
   padding: 0.65rem 1.2rem;
-  border-radius: 4px;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
   text-decoration: none;
   transition: background 0.15s;
 }
@@ -482,8 +481,6 @@ button.linkish {
   font-family: inherit;
   font-size: 0.85rem;
   font-weight: 400;
-  letter-spacing: normal;
-  text-transform: none;
   border-bottom: 1px solid var(--border);
   border-radius: 0;
 }

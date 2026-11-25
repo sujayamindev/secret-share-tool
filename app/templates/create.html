@@ -25,10 +25,9 @@
       <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"></path>
     </svg>
   </button>
-  <main class="term-window">
-    <div class="term-body">
+  <main class="card">
+    <div class="card-body">
       <div id="create-view">
-        <p class="eyebrow">&gt; NEW_SECRET</p>
         <h1>Share a one-time secret</h1>
         <p class="muted">It's encrypted in your browser before it leaves this page, so this site can't read it. The recipient signs in to open it, and it's deleted the moment they do.</p>
         <noscript>
@@ -45,14 +44,13 @@
           </div>
           <div class="field-group">
             <label class="field-label" for="allowed_emails">Restrict to emails <span class="field-label-hint">recommended</span></label>
-            <textarea id="allowed_emails" rows="1" class="textarea-compact" placeholder="jane@company.com, sam@company.com" maxlength="2000"></textarea>
-            <small class="muted">Comma-separated. Only these verified addresses can open it. Left blank, anyone who has the link and can sign in can open it.</small>
+            <textarea id="allowed_emails" rows="1" class="textarea-autogrow" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="jane@company.com, sam@company.com" maxlength="2000"></textarea>
+            <small class="muted small">Separate with commas or new lines. Recipients must sign in with a verified address. If left blank, anyone who has the link and signs in can open it.</small>
           </div>
-          <button type="submit" id="create-btn">Create link_</button>
+          <button type="submit" id="create-btn">Create link</button>
         </form>
       </div>
       <div id="result-view" hidden>
-        <p class="eyebrow">&gt; LINK_CREATED</p>
         <h1>Your share link is ready</h1>
         <p class="muted">It works once. The recipient signs in before the secret unlocks.</p>
         <div class="copy-row">
