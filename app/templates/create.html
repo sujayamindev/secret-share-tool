@@ -48,12 +48,12 @@
             <small class="muted small">Separate with commas or new lines. Recipients must sign in with a verified address. If left blank, anyone who has the link and signs in can open it.</small>
           </div>
           <button type="submit" id="create-btn">Create link</button>
-          <p class="muted small form-note">Unopened links expire after {{ secret_lifetime }}.</p>
+          <p class="muted small form-note">Unopened links expire after <span class="nowrap">{{ secret_lifetime }}</span>.</p>
         </form>
       </div>
       <div id="result-view" hidden>
         <h1>Your share link is ready</h1>
-        <p class="muted">It works once and expires in {{ secret_lifetime }} if no one opens it. The recipient signs in before the secret unlocks.</p>
+        <p class="muted">It works once and expires in <span class="nowrap">{{ secret_lifetime }}</span> if no one opens it. The recipient signs in before the secret unlocks.</p>
         <div class="copy-row">
           <code class="share-url" id="share-url"></code>
           <button class="copy-btn" id="copy-btn" type="button">Copy</button>
@@ -63,6 +63,11 @@
       </div>
     </div>
   </main>
+  <!-- The specifics behind the lede, for readers who want to check the
+       claim: each link goes to the README section that explains it. -->
+  <p class="tech-line">
+    <span class="nowrap">AES-256-GCM</span><span class="tech-sep" aria-hidden="true">&middot;</span><wbr><span class="nowrap">key stays in the link</span><span class="tech-sep" aria-hidden="true">&middot;</span><wbr><a href="https://github.com/sujayamindev/secret-share-tool#how-it-works" target="_blank" rel="noopener noreferrer">How it works</a><span class="tech-sep" aria-hidden="true">&middot;</span><wbr><a href="https://github.com/sujayamindev/secret-share-tool#threat-model" target="_blank" rel="noopener noreferrer">Threat model</a>
+  </p>
   <footer class="site-footer">
     <a href="https://sujaya.dev" target="_blank" rel="noopener noreferrer">by sujaya.dev</a>
     <span class="footer-sep" aria-hidden="true">&middot;</span>

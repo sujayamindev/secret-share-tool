@@ -7,6 +7,7 @@ treat the ciphertext as the opaque bytes it is to the server, and check what
 the server is responsible for: who may collect it, that they prove they hold
 the link, that it is handed over once, and that it is then gone.
 """
+import re
 import threading
 
 import pytest
@@ -415,6 +416,7 @@ def test_humanize_minutes(minutes, words):
 
 def test_create_page_states_the_lifetime(client):
     # The sender should know the link expires before they send it.
-    page = client.get("/").text
+    # Compare text, not markup: the lifetime is wrapped in a span.
+    page = re.sub(r"<[^>]+>", "", client.get("/").text)
     assert "expire after 24 hours" in page
     assert "expires in 24 hours" in page
