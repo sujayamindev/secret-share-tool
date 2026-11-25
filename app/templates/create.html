@@ -25,6 +25,8 @@
       <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"></path>
     </svg>
   </button>
+  <!-- First screen: the form alone. How it works starts at the fold. -->
+  <div class="hero">
   <main class="card">
     <div class="card-body">
       <div id="create-view">
@@ -68,6 +70,7 @@
   <p class="tech-line">
     <span class="nowrap">AES-256-GCM</span><span class="tech-sep" aria-hidden="true">&middot;</span><wbr><span class="nowrap">key stays in the link</span><span class="tech-sep" aria-hidden="true">&middot;</span><wbr><a href="#how-it-works">How it works</a><span class="tech-sep" aria-hidden="true">&middot;</span><wbr><a href="https://github.com/sujayamindev/secret-share-tool#threat-model" target="_blank" rel="noopener noreferrer">Threat model</a>
   </p>
+  </div>
   <!-- How it works: one secret followed through the four steps. Every claim
        here is checked against the code (models.Secret's columns, crypto.js,
        the conditional DELETE in claim_secret); keep them in step if those
