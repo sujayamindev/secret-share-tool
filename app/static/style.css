@@ -560,10 +560,15 @@ a.text-link:hover {
   min-height: 100vh;
   min-height: 100svh;
   margin: 0 auto;
-  padding: 0 0 3rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
+  /* Three rows, the outer two equal: the content (.how-body) sits on the
+     screen's vertical centre when you scroll to it, and the connector line
+     fills the top row. The minimums only bite on short screens. */
+  display: grid;
+  grid-template-rows: minmax(5.5rem, 1fr) auto minmax(3rem, 1fr);
+}
+
+.how-body {
+  grid-row: 2;
 }
 
 html {
@@ -576,23 +581,23 @@ html {
   }
 }
 
-/* A dotted line (the muted placeholder colour) that joins the two screens: it starts just under the
-   footer at the seam and runs down to the heading, taking whatever room the
-   section has (capped), so it always spans the gap instead of floating in
-   it. Decorative, so it is a pseudo-element with no content. */
+/* A solid line (the muted placeholder colour) that joins the two screens:
+   it fills the top grid row, from just under the footer at the seam down to
+   the heading, so it spans the gap instead of floating in it. It lives
+   outside .how-body, so it never shifts the centring of the content.
+   Decorative, so it is a pseudo-element with no content. */
 .how::before {
   content: "";
-  align-self: center;
-  flex: 1 1 0;
-  min-height: 4rem;
-  max-height: 16rem;
+  grid-row: 1;
+  justify-self: center;
+  align-self: stretch;
   /* Equal visible gaps (about 23px) above and below, measured from the
      footer text baseline and the heading capitals. The heading box starts
      ~7px above its capitals, so the two margins are different numbers. */
   margin-top: -0.8rem;
   margin-bottom: 1rem;
-  width: 4px;
-  background: radial-gradient(circle, var(--placeholder) 1.6px, transparent 2px) 50% 50% / 4px 20px repeat-y;
+  width: 2px;
+  background: var(--placeholder);
 }
 
 .how h2 {
