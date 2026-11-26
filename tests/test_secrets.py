@@ -7,6 +7,7 @@ treat the ciphertext as the opaque bytes it is to the server, and check what
 the server is responsible for: who may collect it, that they prove they hold
 the link, that it is handed over once, and that it is then gone.
 """
+import re
 import threading
 
 import pytest
@@ -16,6 +17,7 @@ from sqlalchemy import create_engine, text
 from app import database, secrets_router
 from app.main import app
 from app.models import Secret, UserSession, sha256_hex
+from app.web import humanize_minutes
 from tests.conftest import (
     CIPHERTEXT,
     CLAIM_TOKEN,
@@ -402,3 +404,19 @@ def test_startup_refuses_a_database_from_an_older_version(tmp_path, monkeypatch)
 
 def test_startup_accepts_the_current_schema():
     database.verify_schema()
+
+
+@pytest.mark.parametrize("minutes, words", [
+    (1440, "24 hours"), (60, "1 hour"), (2880, "48 hours"),
+    (4320, "3 days"), (10080, "7 days"), (90, "90 minutes"), (1, "1 minute"),
+])
+def test_humanize_minutes(minutes, words):
+    assert humanize_minutes(minutes) == words
+
+
+def test_create_page_states_the_lifetime(client):
+    # The sender should know the link expires before they send it.
+    # Compare text, not markup: the lifetime is wrapped in a span.
+    page = re.sub(r"<[^>]+>", "", client.get("/").text)
+    assert "expire after 24 hours" in page
+    assert "expires in 24 hours" in page

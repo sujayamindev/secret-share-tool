@@ -25,7 +25,7 @@ from app.config import get_settings
 from app.database import get_db
 from app.models import Secret, _utcnow, sha256_hex
 from app.security import RateLimiter, client_ip, require_same_origin_json
-from app.web import gone_page, templates
+from app.web import gone_page, humanize_minutes, templates
 
 router = APIRouter(tags=["secrets"])
 settings = get_settings()
@@ -73,7 +73,10 @@ def _b64url_decode(value: str) -> bytes:
 
 
 def _parse_allowed_emails(raw: str) -> str | None:
-    """Validate + normalize the comma-separated allowlist. Returns None for
+    """Validate + normalize the allowlist. Entries are separated by commas or
+    any whitespace, so a list pasted one-per-line from a spreadsheet works; an
+    unquoted email address cannot contain whitespace, so splitting on it never
+    cuts a valid address in two. Returns None for
     "unrestricted" (blank input), otherwise a lowercased, deduped, comma-joined
     string. Rejects malformed entries outright rather than silently storing
     them — a typo'd email here would otherwise create a secret nobody can
@@ -83,7 +86,7 @@ def _parse_allowed_emails(raw: str) -> str | None:
     if not raw:
         return None
 
-    emails = [e.strip().lower() for e in raw.split(",") if e.strip()]
+    emails = [e.lower() for e in re.split(r"[,\s]+", raw) if e]
     invalid = [e for e in emails if not EMAIL_RE.match(e)]
     if invalid:
         raise _ValidationError(f"Not a valid email address: {invalid[0]}")
@@ -106,9 +109,12 @@ class ClaimSecretRequest(BaseModel):
 
 @router.get("/", name="create_form")
 def create_form(request: Request):
-    return templates.TemplateResponse(
-        request, "create.html", {"max_plaintext_bytes": MAX_PLAINTEXT_BYTES}
-    )
+    # The lifetime is a fixed setting, so the page states it up front and on
+    # the result view without a round trip.
+    return templates.TemplateResponse(request, "create.html", {
+        "max_plaintext_bytes": MAX_PLAINTEXT_BYTES,
+        "secret_lifetime": humanize_minutes(get_settings().SECRET_TTL_MINUTES),
+    })
 
 
 @router.post("/api/secrets", status_code=201, dependencies=[Depends(require_same_origin_json)])

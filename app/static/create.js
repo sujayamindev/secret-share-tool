@@ -15,6 +15,20 @@
   var copyButton = document.getElementById('copy-btn');
   var maxBytes = parseInt(form.dataset.maxBytes, 10);
 
+  // Grow the allowlist box to fit its content. Browsers with CSS
+  // field-sizing do this themselves (see style.css). Setting style.height
+  // from script is CSSOM, which the CSP's style-src does not block; only
+  // style="" attributes in markup are blocked.
+  if (!(window.CSS && CSS.supports && CSS.supports('field-sizing', 'content'))) {
+    var fitEmails = function () {
+      allowedEmails.style.height = 'auto';
+      var borders = allowedEmails.offsetHeight - allowedEmails.clientHeight;
+      allowedEmails.style.height = (allowedEmails.scrollHeight + borders) + 'px';
+    };
+    allowedEmails.addEventListener('input', fitEmails);
+    fitEmails();
+  }
+
   function showError(message) {
     errorBox.textContent = message;
     errorBox.hidden = false;

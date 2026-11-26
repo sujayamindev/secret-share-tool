@@ -216,7 +216,7 @@ the SHA-256 of that token, with the user's `sub`, verified email and expiry.
 
 ### Per-secret access control
 
-A secret can be restricted to a comma-separated allowlist of email addresses. The viewer's
+A secret can be restricted to an allowlist of email addresses (separated by commas or new lines). The viewer's
 verified email must be on it. With no allowlist, any signed-in account can open the secret,
 which makes sign-in an audit step rather than access control. The create form says so.
 
