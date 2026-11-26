@@ -422,6 +422,15 @@ a.text-link:hover {
   border-bottom-color: var(--accent-text);
 }
 
+/* On the "link is ready" view the link closes the card, so it is centred
+   under the copy row rather than hanging at the left. */
+#result-view a.text-link {
+  display: block;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .share-url,
 .secret-box {
   display: block;
