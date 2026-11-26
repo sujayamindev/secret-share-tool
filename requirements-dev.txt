@@ -2,5 +2,5 @@
 # production image doesn't pull it in. Pinned like everything else: an
 # unpinned linter means CI can start failing without any change to the repo.
 -r requirements.txt
-pytest==8.3.5
+pytest==9.0.3
 ruff==0.17.5
