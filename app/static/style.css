@@ -576,7 +576,7 @@ html {
   }
 }
 
-/* A dotted accent line that joins the two screens: it starts just under the
+/* A dotted line (the muted placeholder colour) that joins the two screens: it starts just under the
    footer at the seam and runs down to the heading, taking whatever room the
    section has (capped), so it always spans the gap instead of floating in
    it. Decorative, so it is a pseudo-element with no content. */
@@ -592,7 +592,7 @@ html {
   margin-top: -0.8rem;
   margin-bottom: 1rem;
   width: 4px;
-  background: radial-gradient(circle, var(--accent-surface) 1.6px, transparent 2px) 0 0 / 4px 11px repeat-y;
+  background: radial-gradient(circle, var(--placeholder) 1.6px, transparent 2px) 50% 50% / 4px 20px repeat-y;
 }
 
 .how h2 {
