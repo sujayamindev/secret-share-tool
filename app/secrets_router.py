@@ -1,6 +1,7 @@
 """
 The actual product logic: store an encrypted secret, hand it over exactly
-once to an authenticated recipient, and delete it in the same step.
+once to whoever holds the full link (and, if the sender listed emails,
+has signed in as one of them), and delete it in the same step.
 
 The server's role is deliberately that of a locked-box courier. The browser
 encrypts before sending and decrypts after receiving (app/static/crypto.js);
@@ -48,9 +49,8 @@ _UUID_RE = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]
 
 create_limiter = RateLimiter(capacity=settings.CREATE_RATE_LIMIT_PER_MINUTE, per_seconds=60)
 
-# One response for every reason a claim can fail once the caller is signed
-# in: never existed, expired, already claimed, caller not on the allowlist,
-# wrong claim token. Telling these apart would tell a prober which IDs are
+# One response for every reason a claim can fail: never existed, expired,
+# already claimed, wrong claim token, caller not on the allowlist. Telling these apart would tell a prober which IDs are
 # live, and tell a stranger that a secret exists but is meant for someone else.
 def _gone() -> HTTPException:
     return HTTPException(404, "This secret is not available.")
@@ -194,27 +194,35 @@ def view_secret(request: Request, secret_id: str, db: DBSession = Depends(get_db
 @router.post("/api/secrets/{secret_id}/claim", dependencies=[Depends(require_same_origin_json)])
 def claim_secret(secret_id: str, body: ClaimSecretRequest, request: Request,
                  db: DBSession = Depends(get_db)):
-    # Auth is checked before existence, not after: an unauthenticated request
-    # gets the same 401 whether secret_id is real, used, or made up.
-    session_row = get_current_session(request, db)
-    if not session_row:
-        raise HTTPException(401, "Sign in to reveal this secret.")
-
+    # Order matters here. Proof that the caller holds the FULL link comes
+    # first, before identity: everything that fails it gets the same 404,
+    # signed in or not, so a prober holding only an ID (or nothing) learns
+    # nothing, including whether that ID is restricted. The token is derived
+    # from the link's key in the browser; we only ever stored its hash.
     secret = db.get(Secret, secret_id) if _UUID_RE.fullmatch(secret_id) else None
-    if not secret or secret.is_expired():
-        raise _gone()
-    if not secret.is_allowed(session_row.email):
-        raise _gone()
-
-    # Proof that the caller holds the full link, not just the ID. The token is
-    # derived from the link's key in the browser; we only ever stored its hash.
     try:
         presented_hash = sha256_hex(_b64url_decode(body.claim_token))
     except ValueError:
-        raise _gone() from None
-    if not hmac.compare_digest(presented_hash, secret.claim_token_hash):
+        presented_hash = None
+    if (not secret or presented_hash is None
+            or not hmac.compare_digest(presented_hash, secret.claim_token_hash)):
         # Nothing is consumed: a damaged or guessed link cannot burn a secret.
         raise _gone()
+    if secret.is_expired():
+        raise _gone()
+
+    # Sign-in is asked for only when the sender restricted the secret to
+    # specific addresses, because only then does identity decide anything.
+    # Without an allowlist the link alone is the credential (any account
+    # would pass), so requiring a login would add friction and no protection.
+    # The 401 is only ever seen by someone who already holds the whole link,
+    # so "this one is restricted" leaks nothing a link-holder could not see.
+    if secret.allowed_emails:
+        session_row = get_current_session(request, db)
+        if not session_row:
+            raise HTTPException(401, "Sign in to reveal this secret.")
+        if not secret.is_allowed(session_row.email):
+            raise _gone()
 
     # Copy out what we will return before deleting the row it lives in.
     payload = {"ciphertext": secret.ciphertext, "iv": secret.iv}

@@ -154,7 +154,6 @@ def test_secret_page_never_redirects_an_anonymous_visitor(client, db):
 
     assert response.status_code == 200
     assert "location" not in response.headers
-    assert 'data-authenticated="false"' in response.text
     assert f'href="/auth/login?next=/secret/{secret.id}"' in response.text
 
 
@@ -185,7 +184,6 @@ def test_loading_the_secret_page_does_not_consume_the_secret(client, db):
 def test_secret_page_shows_who_is_signed_in(client, db):
     sign_in(client, db, email="viewer@example.com")
     page = client.get(f"/secret/{UNKNOWN_ID}").text
-    assert 'data-authenticated="true"' in page
     assert "Signed in as viewer@example.com." in page
 
 
@@ -230,16 +228,62 @@ def test_second_claim_gets_nothing(client, db):
     assert claim(client, secret.id).status_code == 404
 
 
-def test_claim_without_a_session_is_401_whether_or_not_the_secret_exists(client, db):
-    """Auth before existence: both answers must be the same."""
+def test_unrestricted_secret_opens_without_signing_in(client, db):
+    """No allowlist: the full link is the credential, so no login is asked for."""
     secret = make_secret(db)
 
-    real = claim(client, secret.id)
-    fake = claim(client, UNKNOWN_ID)
+    response = claim(client, secret.id)
 
-    assert real.status_code == fake.status_code == 401
-    assert real.json() == fake.json()
+    assert response.status_code == 200
+    assert response.json() == {"ciphertext": CIPHERTEXT, "iv": IV}
+    assert not exists(db, secret.id)
+
+
+def test_restricted_secret_asks_for_sign_in_without_consuming_it(client, db):
+    secret = make_secret(db, allowed_emails="allowed@example.com")
+
+    assert claim(client, secret.id).status_code == 401
     assert exists(db, secret.id)
+
+    sign_in(client, db, email="allowed@example.com")
+    assert claim(client, secret.id).status_code == 200
+
+
+def test_anonymous_refusals_all_look_the_same(client, db):
+    """Without the full link nothing is distinguishable, signed in or not:
+    unknown ID, wrong token, a restricted secret with a wrong token, expired,
+    used. In particular the 401 must not leak "this ID is restricted" to
+    someone who has only the ID."""
+    restricted = make_secret(db, allowed_emails="someone@example.com")
+    plain = make_secret(db)
+    expired = make_secret(db, expires_in_minutes=-5)
+    used = make_secret(db)
+    assert claim(client, used.id).status_code == 200
+
+    responses = [
+        claim(client, UNKNOWN_ID),
+        claim(client, "not-a-uuid"),
+        claim(client, plain.id, OTHER_CLAIM_TOKEN),
+        claim(client, restricted.id, OTHER_CLAIM_TOKEN),
+        claim(client, restricted.id, "not base64!!"),
+        claim(client, expired.id),
+        claim(client, used.id),
+    ]
+
+    assert {r.status_code for r in responses} == {404}
+    assert len({r.text for r in responses}) == 1
+    assert exists(db, plain.id) and exists(db, restricted.id)
+
+
+def test_expired_restricted_secret_is_404_not_401(client, db):
+    """An expired secret is gone; asking the holder to sign in would be a lie."""
+    secret = make_secret(db, allowed_emails="someone@example.com", expires_in_minutes=-5)
+    assert claim(client, secret.id).status_code == 404
+
+
+def test_secret_page_hides_sign_out_from_anonymous_visitors(client, db):
+    page = client.get(f"/secret/{UNKNOWN_ID}").text
+    assert "sign-out" not in page
 
 
 def test_every_refusal_looks_the_same_to_a_signed_in_caller(client, db):

@@ -2,12 +2,13 @@
 
 [![CI](https://github.com/sujayamindev/secret-share-tool/actions/workflows/ci.yml/badge.svg)](https://github.com/sujayamindev/secret-share-tool/actions/workflows/ci.yml)
 
-Zero-knowledge, identity-gated, one-time secret sharing.
+Zero-knowledge, one-time secret sharing, optionally gated by identity.
 
 - **Zero-knowledge:** the secret is encrypted in the sender's browser. The server stores
   ciphertext and never receives the key or the plaintext.
-- **Identity-gated:** the recipient signs in through an OpenID Connect provider before the
-  ciphertext is released, and a secret can be restricted to specific verified email addresses.
+- **Optionally identity-gated:** the sender can restrict a secret to specific verified email
+  addresses. The recipient then signs in through an OpenID Connect provider before the
+  ciphertext is released. With no restriction, the link alone opens it.
 - **One-time:** the first successful reveal deletes the secret from the server.
 
 It works with any standards-compliant OIDC provider and is tested with Auth0.
@@ -25,9 +26,11 @@ plainly.
    `https://host/secret/<id>#<key>`.
 2. **Send.** You send that link to the recipient however you like.
 3. **Open.** The recipient opens the link. The part after `#` (the key) is never sent to the
-   server; the page moves it out of the address bar and asks the recipient to sign in.
-4. **Reveal.** After signing in, the recipient presses **Reveal**. The server checks who they
-   are, deletes its copy, and returns the ciphertext. The browser decrypts it.
+   server; the page moves it out of the address bar.
+4. **Reveal.** The recipient presses **Reveal**. If the sender listed emails, the server
+   answers "sign in first" and the recipient signs in, then presses Reveal again. The server
+   checks the link (and, if restricted, who they are), deletes its copy, and returns the
+   ciphertext. The browser decrypts it.
 
 A second attempt, by anyone, gets "this secret isn't available".
 
@@ -84,7 +87,7 @@ is the conventional form.
 | Link is sent | in whatever channel the sender chose | unchanged |
 | Recipient opens it | in the address bar as the fragment, which is not part of the request | a `GET /secret/<id>` |
 | Page script runs | moved to `sessionStorage`, removed from the address bar | unchanged |
-| Recipient signs in | in `sessionStorage` for this site and this tab | a session |
+| Recipient signs in (restricted secrets only) | in `sessionStorage` for this site and this tab | a session |
 | Recipient clicks Reveal | used to derive the claim token, then to decrypt | deletes the row, returns ciphertext |
 | Afterwards | removed from `sessionStorage` | nothing |
 
@@ -115,12 +118,13 @@ readable by any script on the provider's page. So:
 1. `GET /secret/<id>` **always returns a page and never redirects**, signed in or not.
 2. The page's script runs first: it copies the key to `sessionStorage` and removes it from
    the address bar with `history.replaceState`.
-3. Only then is a **Sign in** link offered. The URL has no fragment left to inherit.
+3. Only then can the recipient leave for sign-in: the **Sign in** link appears when a Reveal
+   attempt gets a 401 (the secret is restricted). The URL has no fragment left to inherit.
 4. As a second guard, the redirect to the provider ends in an explicit `#_`. A redirect that
    has its own fragment replaces any inherited one, so even a leftover key would arrive at
    the provider as `#_`.
 5. After sign-in the browser returns to `/secret/<id>`, the script finds the key in
-   `sessionStorage`, and the **Reveal** button appears.
+   `sessionStorage`, and the **Reveal** button appears again.
 
 `sessionStorage` is the holding place because it is never sent in a request, is private to
 this site, and is private to the tab. The alternatives all leak somewhere: the OAuth `state`
@@ -217,8 +221,10 @@ the SHA-256 of that token, with the user's `sub`, verified email and expiry.
 ### Per-secret access control
 
 A secret can be restricted to an allowlist of email addresses (separated by commas or new lines). The viewer's
-verified email must be on it. With no allowlist, any signed-in account can open the secret,
-which makes sign-in an audit step rather than access control. The create form says so.
+verified email must be on it, so the recipient signs in first. With no allowlist there is
+no sign-in: the full link is the only credential. Requiring a login there would add friction
+and no access control, because any account at the provider would pass. The create form says
+so.
 
 ## Other design decisions
 
@@ -230,10 +236,12 @@ a POST guarded three independent ways: the Lax cookie, a required
 must equal the app's own origin. There is no CSRF token because there are no server-rendered
 forms to put one in.
 
-**Auth before existence, and one answer for every refusal.** The claim endpoint returns 401
-to anyone not signed in, before it looks anything up. Once signed in, "never existed",
-"expired", "already opened", "not on the allowlist" and "wrong claim token" all return the
-same 404. The secret page itself never queries the secrets table, so loading it reveals
+**Proof of the link before anything, and one answer for every refusal.** The claim endpoint
+checks the claim token first. "Never existed", "wrong claim token", "expired", "already
+opened" and "not on the allowlist" all return the same 404, signed in or not. Only a caller
+whose token matches a live, restricted secret and who has no session gets a 401, and nothing
+is consumed. So the 401 tells "this one needs a sign-in" only to someone who already holds
+the whole link. The secret page itself never queries the secrets table, so loading it reveals
 nothing about whether an ID is real.
 
 **The one-time guarantee is a conditional `DELETE` judged by row count.** Two concurrent
@@ -289,7 +297,7 @@ is clean as of the last dependency bump; pins do not update themselves.
 | Someone who intercepts the link, when an allowlist is set | The key, but no way to fetch the ciphertext without signing in as a listed, verified address. |
 | A compromised or malicious identity provider | It can sign in as anyone and fetch ciphertext, but has no key unless it also has the link. |
 | Someone who knows only a secret's ID | Nothing. They cannot fetch or burn it without the claim token. |
-| A link scanner, a prefetcher, a cross-site request | Nothing. Loading the page changes nothing; the claim is a same-origin POST. |
+| A link scanner, a prefetcher, a cross-site request | Nothing, unless it clicks Reveal (see below). Loading the page changes nothing; the claim is a same-origin POST. |
 | A page trying to frame the app or inject script | Blocked by the CSP and `frame-ancestors`. |
 | Someone who signs up at the provider with a victim's address and never verifies it | A session with no email, which matches no allowlist. |
 
@@ -299,10 +307,11 @@ is clean as of the last dependency bump; pins do not update themselves.
 |---|---|
 | **A compromised server sending malicious JavaScript** | The browser runs whatever script the server serves. An attacker in control of the server can serve script that uploads the key. This is the basic limit of encryption delivered by a web page. The protection is against passive and after-the-fact compromise (stolen database, backups, logs), not an attacker actively controlling the server. |
 | A compromised sender or recipient device | Malware, browser extensions and clipboard managers see the plaintext. |
-| The channel that carries the link, when no allowlist is set | The link plus any account at the provider opens the secret. |
+| The channel that carries the link, when no allowlist is set | The link alone opens the secret. Anyone who sees it (a forwarded email, chat history, a screenshot) can read it first. |
+| A scanner that runs the page and clicks Reveal, when no allowlist is set | Some email and chat security tools open links in a headless browser. One that clicks the button reads and burns an unrestricted secret. The recipient then sees "not available", so the loss is visible and the secret can be rotated. An allowlist stops this, because the scanner cannot sign in. |
 | The key lingering in the recipient's browser history | The script removes it from the address bar at once, but whether the original URL was already recorded depends on the browser. Once the secret is revealed the ciphertext is gone, so an old key opens nothing. |
 | Metadata | The server sees size (ciphertext length is plaintext length plus 16 bytes), timing, IP addresses, the allowlist and who claimed. |
-| Denial of service | Anyone with the full link and an allowed identity can burn the secret. The operator can delete rows. |
+| Denial of service | Anyone with the full link (and an allowed identity, if restricted) can burn the secret. The operator can delete rows. |
 | Sender authenticity | The recipient cannot tell who created a secret. |
 | A weak identity provider | The allowlist is only as strong as the provider's email verification and account security. |
 
