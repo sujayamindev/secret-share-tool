@@ -387,7 +387,8 @@ def test_tampered_next_cookie_cannot_redirect_off_site(client, idp):
 
 def _is_signed_in(client) -> bool:
     page = client.get(SECRET_PATH)
-    return 'data-authenticated="true"' in page.text
+    # Sign-out buttons are rendered only for a signed-in visitor.
+    return "sign-out" in page.text
 
 
 def test_session_cookie_signs_the_browser_in(client, db):

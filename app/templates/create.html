@@ -31,7 +31,7 @@
     <div class="card-body">
       <div id="create-view">
         <h1>Share a one-time secret</h1>
-        <p class="muted">It's encrypted in your browser before it leaves this page, so this site can't read it. The recipient signs in to open it, and it's deleted the moment they do.</p>
+        <p class="muted">It's encrypted in your browser before it leaves this page, so this site can't read it. It opens once, then it's deleted. Name the recipients' emails and they must sign in first.</p>
         <noscript>
           <p class="form-error">This page needs JavaScript. Secrets are encrypted and decrypted in your browser, so there is no version of it that works without script.</p>
         </noscript>
@@ -47,7 +47,7 @@
           <div class="field-group">
             <label class="field-label" for="allowed_emails">Restrict to emails <span class="field-label-hint">recommended</span></label>
             <textarea id="allowed_emails" rows="1" class="textarea-autogrow" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="jane@company.com, sam@company.com" maxlength="2000"></textarea>
-            <small class="muted small">Separate with commas or new lines. Recipients must sign in with a verified address. If left blank, anyone who has the link and signs in can open it.</small>
+            <small class="muted small">Separate with commas or new lines. Recipients must sign in with a verified address. If left blank, anyone who has the link can open it without signing in.</small>
           </div>
           <button type="submit" id="create-btn">Create link</button>
           <p class="muted small form-note">Unopened links expire after <span class="nowrap">{{ secret_lifetime }}</span>.</p>
@@ -55,7 +55,7 @@
       </div>
       <div id="result-view" hidden>
         <h1>Your share link is ready</h1>
-        <p class="muted">It works once and expires in <span class="nowrap">{{ secret_lifetime }}</span> if no one opens it. The recipient signs in before the secret unlocks.</p>
+        <p class="muted">It works once and expires in <span class="nowrap">{{ secret_lifetime }}</span> if no one opens it. If you listed emails, the recipient signs in with one of them first. If not, anyone who has the link can open it.</p>
         <div class="copy-row">
           <code class="share-url" id="share-url"></code>
           <button class="copy-btn" id="copy-btn" type="button">Copy</button>
@@ -114,12 +114,12 @@
         </li>
         <li class="step">
           <div class="step-head"><span class="step-label">3 · Their sign-in</span><svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg></div>
-          <h3>Only the right person gets in</h3>
+          <h3>You choose who can open it</h3>
           <dl class="specimen">
             <dt>signed in</dt><dd class="mono">jane@company.com</dd>
             <dt>allowed</dt><dd class="has-badge"><span class="mono">jane@company.com</span><span class="badge">match</span></dd>
           </dl>
-          <p>The recipient signs in first. If you listed emails, only a verified address on that list can open it.</p>
+          <p>If you listed emails, the recipient signs in and only a verified address on that list can open it. Leave it blank and the link alone opens it.</p>
         </li>
         <li class="step">
           <div class="step-head"><span class="step-label">4 · Gone</span><svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>

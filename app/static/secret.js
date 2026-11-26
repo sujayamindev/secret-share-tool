@@ -5,7 +5,6 @@
 
   var main = document.getElementById('secret-main');
   var secretId = main.dataset.secretId;
-  var authenticated = main.dataset.authenticated === 'true';
   var storageKey = 'link-secret:' + secretId;
 
   // --- Step 1: move the key from the URL into sessionStorage -------------
@@ -83,9 +82,11 @@
     // No key: the Reveal button is never offered, so nothing can be claimed
     // and the secret is untouched. Reopening the full link works.
     show('view-missing-key');
-  } else if (!authenticated) {
-    show('view-sign-in');
   } else {
+    // Signed in or not, offer Reveal. This page cannot know whether the
+    // secret is restricted to specific emails (the server did not look it
+    // up), so it asks the server by trying; a restricted secret answers 401
+    // without being consumed, and only then is sign-in shown.
     show('view-reveal');
   }
 
@@ -105,9 +106,10 @@
       });
 
       if (response.status === 401) {
-        // Session expired since the page loaded. Reload: the server will
-        // render the sign-in view, and the key is still in sessionStorage.
-        window.location.reload();
+        // The secret is restricted to specific emails and this tab has no
+        // (or an expired) session. Nothing was consumed. The key stays in
+        // sessionStorage for the round trip through the sign-in page.
+        show('view-sign-in');
         return;
       }
       if (!response.ok) {
