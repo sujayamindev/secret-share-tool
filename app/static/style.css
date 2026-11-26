@@ -673,13 +673,6 @@ html {
   color: var(--muted);
 }
 
-/* The step icons use the brand green (#3ddc84) in both themes, the same as
-   the button and focus border, not the darker text green; the "what the
-   server stores" strip stays neutral. */
-.step-icon {
-  color: var(--accent-surface);
-}
-
 .step h3 {
   margin: 0;
   font-size: 1.15rem;
@@ -869,13 +862,9 @@ html {
   color: var(--muted);
 }
 
-/* Colour-coded: the server icon is the brand green like the step icons; the
-   two labels are text, so they use the readable text green and the error
-   red (each darker in light mode) instead of the pale brand green. */
-.holds-icon {
-  color: var(--accent-surface);
-}
-
+/* Colour-coded labels. They are text, so they use the readable text green
+   and the error red (each darker in light mode), not the pale brand green.
+   The icons stay muted. */
 .holds-row:first-of-type .holds-label {
   color: var(--accent-text);
 }
