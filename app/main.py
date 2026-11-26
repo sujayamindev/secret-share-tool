@@ -54,7 +54,7 @@ async def lifespan(_app: FastAPI):
 # Swagger UI loads its script from a CDN — third-party code running on the
 # same origin that holds decryption keys in the browser.
 app = FastAPI(
-    title="Secret Share",
+    title="Rahasya",
     docs_url=None, redoc_url=None, openapi_url=None,
     lifespan=lifespan,
 )

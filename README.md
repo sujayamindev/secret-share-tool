@@ -1,8 +1,10 @@
-# Secret Share
+# Rahasya
 
 [![CI](https://github.com/sujayamindev/secret-share-tool/actions/workflows/ci.yml/badge.svg)](https://github.com/sujayamindev/secret-share-tool/actions/workflows/ci.yml)
 
 Zero-knowledge, one-time secret sharing, optionally gated by identity.
+
+Rahasya (රහස්‍ය) is Sinhala for "secret".
 
 - **Zero-knowledge:** the secret is encrypted in the sender's browser. The server stores
   ciphertext and never receives the key or the plaintext.
