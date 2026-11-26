@@ -596,8 +596,9 @@ html {
      ~7px above its capitals, so the two margins are different numbers. */
   margin-top: -0.8rem;
   margin-bottom: 1rem;
-  width: 2px;
+  width: 1px;
   background: var(--placeholder);
+  opacity: 0.5;
 }
 
 .how h2 {
