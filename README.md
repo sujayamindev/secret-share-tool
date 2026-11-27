@@ -317,6 +317,12 @@ is clean as of the last dependency bump; pins do not update themselves.
 | Sender authenticity | The recipient cannot tell who created a secret. |
 | A weak identity provider | The allowlist is only as strong as the provider's email verification and account security. |
 
+### Reporting a vulnerability
+
+Please report it privately, not in a public issue. [`SECURITY.md`](SECURITY.md) explains
+how, and what counts: a way around one of the protections above is in scope, while the
+limits listed above are known.
+
 ## Architecture
 
 ```
@@ -502,7 +508,8 @@ fast-forwards the checkout to the exact commit that was tested, and runs
 - The rate limiter is per process and in memory
 - No protection against the server operator actively serving malicious script
   (see the threat model)
-- Dependency versions are pinned and are not updated automatically
+- Dependency versions are pinned. Dependabot opens a pull request when one has a security
+  advisory; nothing is merged automatically
 
 The audit that led to this version, and the reasoning behind each decision, is in
 [`docs/DESIGN-v2.md`](docs/DESIGN-v2.md).
