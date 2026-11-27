@@ -4,6 +4,10 @@ Status: **approved 2026-11-15**, with the recommended answer to every decision i
 Branch: `feat/zero-knowledge-auth0`. Audit date: 2026-11-15, against commit `1de9a12`.
 Sections 1 and 2 describe the code as it was at that commit, before any of the fixes.
 
+This is the design as approved, kept as a record. Later changes are listed in section 12,
+and passages they replaced are marked **Superseded** with a pointer there. The README
+describes the current behaviour.
+
 Contents
 
 1. Audit findings, ranked
@@ -327,6 +331,9 @@ secret.
 | 9. Recipient clicks Reveal | Read from `sessionStorage`. `claim_token` is derived and sent | Verifies token and allowlist, deletes the row, returns the ciphertext |
 | 10. Decrypt | Used once in the browser, then removed from `sessionStorage` | Nothing. The row is gone |
 
+> **Superseded 2026-11-26 (section 12):** step 8 now happens only for a secret with an
+> allowlist. An unrestricted secret goes from step 7 straight to step 9, with no session.
+
 ### Why the server can never see the key
 
 - It is generated in the browser and placed only in the fragment, which is not part of an
@@ -384,6 +391,12 @@ A button rather than an automatic redirect in step 3: it gives the page a moment
 what is about to happen, and a link scanner that loads the page never bounces off the
 provider.
 
+> **Superseded 2026-11-26 (section 12):** steps 3 and 5 changed. The page no longer knows
+> whether a secret is restricted, so it always shows **Reveal** first. The sign-in button
+> appears only when the claim answers 401, which happens only for a live secret with an
+> allowlist, and nothing is consumed. An unrestricted secret never involves sign-in. The
+> fragment handling (steps 1, 2 and 4) is unchanged.
+
 ### Why `sessionStorage`
 
 | Option | Verdict |
@@ -405,7 +418,7 @@ disabled. Nothing has been claimed, so reopening the original link works.
 One thing I will test in a real browser before relying on it: that `sessionStorage` survives
 the same tab going to another origin and back. I am confident it does (it is how this
 pattern is normally built) but the documentation I fetched does not state it in so many
-words. See section 12.
+words. See section 13.
 
 ---
 
@@ -438,6 +451,13 @@ mean a zero-knowledge proof, and the README will say so.
 | Denial of service | Anyone holding the full link and an allowed identity can burn the secret. The operator can delete rows. |
 | Sender authenticity | The recipient cannot tell who created a secret. |
 | A weak identity provider | The allowlist is as strong as the provider's email verification and account security. |
+
+> **Superseded 2026-11-26 (section 12):** without an allowlist there is no sign-in, so the
+> "channel carrying the link" row now reads: the link alone opens the secret. "Denial of
+> service" becomes: anyone holding the full link (and an allowed identity, if restricted).
+> One limit is new: a link scanner that runs the page and clicks Reveal can open and burn
+> an unrestricted secret. The recipient then sees "not available", so the loss is visible.
+> The README's threat model is the current version of this section.
 
 ---
 
@@ -525,6 +545,11 @@ exists, not expired, allowlist, claim token. Every failure after sign-in returns
 404 body. The secret page itself never queries the secrets table, so loading it reveals
 nothing about whether an ID is real.
 
+> **Superseded 2026-11-26 (section 12):** the order is now claim token first (missing,
+> wrong, expired or already claimed all give the same 404, signed in or not), then, only
+> for a secret with an allowlist, session (401 if none, nothing consumed) and allowlist
+> (404). So a 401 reaches only someone who holds the full link to a live restricted secret.
+
 ### Deletion
 
 Claim = read the row, check it, then `DELETE ... WHERE id = ? AND expires_at > now`. Only the
@@ -600,7 +625,7 @@ a header that protects nothing this app uses.
 - [ ] Token attacks: bad signature, wrong `aud`, wrong `iss`, expired, missing `exp`, `alg: none`, HS256 signed with the public key, wrong nonce, multi-audience without `azp`, unknown `kid`
 - [ ] Flow attacks: missing or wrong `state`, discovery issuer mismatch, PKCE verifier sent, unverified email gets no session email
 - [ ] `next`: `/\evil.com`, `//evil.com`, absolute URL, `/auth/login`, tab variant
-- [ ] Claim: unauthenticated 401 for real and fake IDs alike; identical 404 for missing, expired, not allowed, wrong token; wrong token does not burn; row gone after claim; race with two threads; cross-origin and non-JSON rejected
+- [ ] Claim: unauthenticated 401 for real and fake IDs alike; identical 404 for missing, expired, not allowed, wrong token; wrong token does not burn; row gone after claim; race with two threads; cross-origin and non-JSON rejected. *Superseded 2026-11-26 (section 12): 401 only for a valid token to a live restricted secret; real and fake IDs alike get the 404.*
 - [ ] Create: size limits, malformed base64, wrong IV length, bad emails, rate limit, live-secret cap, oversized body
 - [ ] Sessions: hash stored not token, logout deletes row, expired rejected, cleanup purges
 - [ ] Headers present on HTML, API and error responses; `/docs` is 404
@@ -673,6 +698,19 @@ order:
 - **Not built:** nothing in the section 9 checklist was dropped. The Docker image was first built by CI
   and on the deployment VM, since Docker is not installed on the development machine.
 
+### After the build
+
+- **2026-11-26: sign-in only for restricted secrets.** The approved design asked every
+  recipient to sign in, and checked for a session before looking anything up. For a
+  secret with no allowlist that bought nothing: any account at the provider would pass, so
+  sign-in was friction without access control. Now the claim checks the claim token first,
+  and asks for a session (401, nothing consumed) only when the token matches a live secret
+  that has an allowlist. Every other refusal is the same 404, signed in or not, so a 401
+  tells "this one is restricted" only to someone who already holds the full link. Secret
+  page: Reveal is offered first; the sign-in view appears on a 401. Cost: a link scanner
+  that clicks Reveal can now open an unrestricted secret (section 5 note). Sections 3, 4,
+  5, 8 and 9 are marked where this changes them.
+
 ## 13. Sources and things I could not confirm
 
 | Claim | Source | Status |
@@ -684,10 +722,10 @@ order:
 | `sessionStorage` survives a same-tab visit to another origin and back | Tested 2026-11-15 in a Chromium-based browser with `tests/mock_idp.py` (app on :8000, provider on :9000) | Confirmed in that browser. Not tested in Firefox or Safari |
 | Auth0 discovery URL, Regular Web App, Allowed Callback/Logout URLs, `/oidc/logout` parameters | auth0.com/docs (discovery, auth code flow, logout pages) | Confirmed |
 | Auth0 issuer has a trailing slash | Auth0 docs show both forms | **Not confirmed. Design does not depend on it** |
-| Auth0 lets an unverified database user log in with `email_verified: false` | Pages read do not cover it | **Not confirmed. The fix is correct either way** |
+| Auth0 lets an unverified database user log in with `email_verified: false` | Pages read do not cover it | **Not confirmed. The fix is correct either way.** No longer relevant to the live demo: since 2026-11-27 its Auth0 app allows Google sign-in only |
 | Auth0 accepts PKCE from a Regular Web App | Tenant discovery lists `S256`; a full login with PKCE completed against a real tenant on 2026-11-17 | Confirmed |
 | Auth0 signs ID tokens with RS256 by default | A new application's token verified with the app's asymmetric-only allow-list on 2026-11-17 | Confirmed for the tenant tested |
 | Auth0 logout without `id_token_hint` | Tested 2026-11-17 | Confirmed: Auth0 shows a confirmation page, then redirects to the registered logout URL |
-| Production sends `http://` redirects (F19) | Reproduced in the test client only | **Not confirmed in production: the domain does not resolve** |
+| Production sends `http://` redirects (F19) | Reproduced in the test client only | **Not confirmed in production: the domain does not resolve.** Moot after the fix: redirects are relative paths, and the domain resolves since 2026-11-17 |
 | nginx forwards client IP and scheme | Read the vhost over SSH on 2026-11-15, after the owner gave access | Confirmed: both headers are set |
 | ssh-action v1.2.0 commit | `git ls-remote` on 2026-11-15 | Confirmed |
