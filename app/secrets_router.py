@@ -107,7 +107,9 @@ class ClaimSecretRequest(BaseModel):
     claim_token: str = Field(max_length=64)
 
 
-@router.get("/", name="create_form")
+# HEAD too: uptime monitors and link checkers probe the home page with it, and
+# a 405 reads as "site down". Same handler; the server (uvicorn) sends no body.
+@router.api_route("/", methods=["GET", "HEAD"], name="create_form")
 def create_form(request: Request):
     # The lifetime is a fixed setting, so the page states it up front and on
     # the result view without a round trip.

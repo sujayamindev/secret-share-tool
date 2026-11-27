@@ -42,6 +42,20 @@ def test_every_dynamic_response_has_the_security_headers(path, status, client):
     assert response.headers["cache-control"] == "no-store"
 
 
+@pytest.mark.parametrize("path", ["/", "/healthz"])
+def test_head_is_answered_like_get_without_a_body(path, client):
+    response = client.head(path)
+
+    assert response.status_code == 200
+    assert response.content == b""
+    assert "default-src 'none'" in response.headers["content-security-policy"]
+
+
+def test_head_does_not_open_the_state_changing_routes(client):
+    # /auth/login creates a login attempt; it stays GET-only.
+    assert client.head("/auth/login").status_code == 405
+
+
 def test_api_responses_are_not_cacheable(client):
     response = client.post("/api/secrets", json={})
     assert response.headers["cache-control"] == "no-store"
