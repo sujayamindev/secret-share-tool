@@ -95,6 +95,7 @@ async def validation_error(request: Request, _exc: RequestValidationError):
     return error_page(request, 400, "Bad request", "That request couldn't be completed.")
 
 
-@app.get("/healthz")
+# HEAD as well as GET, for monitors that check health without a body.
+@app.api_route("/healthz", methods=["GET", "HEAD"])
 def healthz():
     return {"status": "ok"}
