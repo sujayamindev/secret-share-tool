@@ -89,15 +89,18 @@ def test_interactive_api_docs_are_disabled(client):
 @pytest.mark.parametrize("template", TEMPLATES, ids=lambda p: p.name)
 def test_templates_have_no_inline_script_and_load_nothing_from_other_origins(template):
     html = template.read_text(encoding="utf-8")
+    # HTML tag and attribute names are case-insensitive, so every check is
+    # too: <SCRIPT> or onClick= must not slip past a lowercase-only pattern.
+    i = re.IGNORECASE
 
     # Every <script> must have a src: inline script is what the CSP forbids.
-    for tag in re.findall(r"<script\b[^>]*>", html):
+    for tag in re.findall(r"<script\b[^>]*>", html, i):
         assert 'src="/static/' in tag, tag
     # No inline event handlers (onclick=...), no inline styles.
-    assert not re.search(r"\son[a-z]+\s*=", html)
-    assert not re.search(r"\sstyle\s*=", html) and "<style" not in html
+    assert not re.search(r"\son[a-z]+\s*=", html, i)
+    assert not re.search(r"\sstyle\s*=", html, i) and not re.search(r"<style\b", html, i)
     # Anything the page loads (script, stylesheet, image, font) is same-origin.
-    for url in re.findall(r'<(?:script|link|img)\b[^>]*?(?:src|href)="([^"]+)"', html):
+    for url in re.findall(r'<(?:script|link|img)\b[^>]*?(?:src|href)="([^"]+)"', html, i):
         assert url.startswith("/static/"), url
 
 
