@@ -52,7 +52,7 @@ class Secret(Base):
     # proves they hold the full link and not just this row's id.
     claim_token_hash = Column(String, nullable=False)
     # Comma-separated allowlist of verified email addresses.
-    # NULL means unrestricted (anyone authenticated can view).
+    # NULL means unrestricted: the full link alone opens it, with no sign-in.
     allowed_emails = Column(String, nullable=True)
     created_at = Column(DateTime, default=_utcnow)
     expires_at = Column(DateTime, nullable=False, index=True)

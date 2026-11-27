@@ -341,7 +341,8 @@ app/
     ├── create.js       # encrypt, POST, build the link
     ├── secret.js       # take the key out of the URL, sign-in/reveal views, decrypt
     ├── theme-init.js, theme.js, style.css
-    └── fonts/          # self-hosted Space Grotesk and JetBrains Mono (OFL 1.1)
+    └── fonts/          # self-hosted Space Grotesk, JetBrains Mono, and a Maname subset
+                        # for the logo's six Sinhala characters (all OFL 1.1)
 
 tests/
 ├── conftest.py              # isolated DB, a fake provider that signs real RS256 tokens

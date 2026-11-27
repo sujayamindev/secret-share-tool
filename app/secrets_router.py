@@ -6,8 +6,9 @@ has signed in as one of them), and delete it in the same step.
 The server's role is deliberately that of a locked-box courier. The browser
 encrypts before sending and decrypts after receiving (app/static/crypto.js);
 this module only ever handles ciphertext it has no key for. What it does own
-is everything the server CAN enforce: who may collect the box (session +
-allowlist), proof that they hold the whole link (claim token), that it is
+is everything the server CAN enforce: who may collect the box (a session
+whose verified email is on the allowlist, when there is one), proof that they
+hold the whole link (claim token), that it is
 collected at most once, and that it is destroyed afterwards.
 """
 import base64
