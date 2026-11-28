@@ -500,6 +500,9 @@ fast-forwards the checkout to the exact commit that was tested, and runs
 - The workflow token is read-only.
 - Deploy credentials are **Environment** secrets on a `production` environment, so only the
   deploy job receives them and jobs triggered by pull requests from forks do not.
+- The deploy SSH key belongs to a dedicated VM user and is locked with `restrict` and a
+  forced command that accepts only `deploy <full commit SHA>`, and only for a commit already
+  on `origin/main`. A leaked key cannot open a shell, forward ports or deploy other code.
 
 ## Out of scope, and known limits
 
